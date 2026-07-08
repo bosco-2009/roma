@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dúvidas — Plataforma do Aluno</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .main.narrow{ display:flex; flex-direction:column; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="logo"><span class="dot"></span>SEU NOME</div>
+    <div class="user-chip">
+      <div class="mini-avatar" id="miniAvatar">A</div>
+      <div>
+        <div class="u-name" id="chipName">Aluno</div>
+        <div class="u-role">Aluno</div>
+      </div>
+    </div>
+    <nav class="nav-group">
+      <a class="nav-link" href="dashboard.html"><span class="ic">🏠</span>Início</a>
+      <a class="nav-link" href="curso.html"><span class="ic">🎬</span>Meu Curso</a>
+      <a class="nav-link" href="perfil.html"><span class="ic">👤</span>Perfil</a>
+      <a class="nav-link active" href="#"><span class="ic">💬</span>Dúvidas</a>
+    </nav>
+    <div class="nav-sair"><a class="nav-link" href="#" id="btnSair"><span class="ic">⏻</span>Sair</a></div>
+  </aside>
+
+  <main class="main narrow" style="max-width:820px;">
+    <button class="menu-toggle" id="menuToggle">☰</button>
+    <div class="topbar">
+      <div>
+        <h1>Dúvidas com o Professor</h1>
+        <p class="sub">Pergunte à vontade — geralmente respondo em até 24h.</p>
+      </div>
+    </div>
+
+    <div class="chat-card fade-in">
+      <div class="chat-head">
+        <div class="prof-avatar">P</div>
+        <div>
+          <h3>Professor</h3>
+          <p><span class="status-dot"></span>online agora</p>
+        </div>
+      </div>
+      <div class="chat-body" id="chatBody">
+        <div class="msg prof">Oi! Vi que você está avançando no curso 👋 Alguma dúvida sobre a matéria?<span class="time">09:14</span></div>
+        <div class="msg aluno">Sim! Não entendi direito quando uso a fórmula de Bhaskara vs quando dá pra fatorar direto.<span class="time">09:20</span></div>
+        <div class="msg prof">Boa pergunta! Se a equação for simples de fatorar (tipo x² - 5x + 6), fatorar é mais rápido. Bhaskara funciona sempre, mas é mais longo — uso ele quando não vejo a fatoração de cara.<span class="time">09:23</span></div>
+      </div>
+      <form class="chat-input" id="chatForm">
+        <input type="text" id="chatInput" placeholder="Digite sua dúvida..." autocomplete="off">
+        <button type="submit" class="send-btn">➤</button>
+      </form>
+    </div>
+
+    <div class="faq fade-in fade-in-1">
+      <h2>Perguntas frequentes</h2>
+      <div class="faq-item">
+        <div class="faq-q">Quanto tempo tenho de acesso ao curso? <span class="arrow">▾</span></div>
+        <div class="faq-a">O acesso é válido por 12 meses a partir da data da compra.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Posso baixar as aulas? <span class="arrow">▾</span></div>
+        <div class="faq-a">As vídeoaulas ficam disponíveis apenas online, mas os materiais de apoio em PDF podem ser baixados.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Como peço um reembolso? <span class="arrow">▾</span></div>
+        <div class="faq-a">É só enviar uma mensagem por aqui em até 7 dias após a compra.</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="usuarios.js"></script>
+<script>
+  const user = exigirLogin();
+  if(user){
+    document.getElementById('miniAvatar').textContent = user.nome.trim().charAt(0).toUpperCase();
+    document.getElementById('chipName').textContent = user.nome;
+  }
+
+  const chatForm = document.getElementById('chatForm');
+  const chatInput = document.getElementById('chatInput');
+  const chatBody = document.getElementById('chatBody');
+
+  chatForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = chatInput.value.trim();
+    if(!text) return;
+    const now = new Date();
+    const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    const msg = document.createElement('div');
+    msg.className = 'msg aluno';
+    msg.innerHTML = text.replace(/</g,'&lt;') + '<span class="time">' + time + '</span>';
+    chatBody.appendChild(msg);
+    chatBody.scrollTop = chatBody.scrollHeight;
+    chatInput.value = '';
+  });
+
+  document.querySelectorAll('.faq-item').forEach(item => {
+    item.querySelector('.faq-q').addEventListener('click', () => item.classList.toggle('open'));
+  });
+
+  document.getElementById('btnSair').addEventListener('click', (e) => {
+    e.preventDefault();
+    encerrarSessao();
+    window.location.href = 'login.html';
+  });
+
+  const menuToggle = document.getElementById('menuToggle');
+  const sidebar = document.getElementById('sidebar');
+  menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+</script>
+</body>
+</html>

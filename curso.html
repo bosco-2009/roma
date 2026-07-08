@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meu Curso — Plataforma do Aluno</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="logo"><span class="dot"></span>SEU NOME</div>
+    <div class="user-chip">
+      <div class="mini-avatar" id="miniAvatar">A</div>
+      <div>
+        <div class="u-name" id="chipName">Aluno</div>
+        <div class="u-role">Aluno</div>
+      </div>
+    </div>
+    <nav class="nav-group">
+      <a class="nav-link" href="dashboard.html"><span class="ic">🏠</span>Início</a>
+      <a class="nav-link active" href="curso.html"><span class="ic">🎬</span>Meu Curso</a>
+      <a class="nav-link" href="perfil.html"><span class="ic">👤</span>Perfil</a>
+      <a class="nav-link" href="duvidas.html"><span class="ic">💬</span>Dúvidas</a>
+    </nav>
+    <div class="nav-sair"><a class="nav-link" href="#" id="btnSair"><span class="ic">⏻</span>Sair</a></div>
+  </aside>
+
+  <main class="main wide">
+    <button class="menu-toggle" id="menuToggle">☰</button>
+    <div class="topbar">
+      <div>
+        <h1 id="cursoTitulo">Matemática: Reforço ao ENEM</h1>
+        <p class="sub"><span id="totalAulas">12</span> aulas · progresso: <b id="percentInline" class="mono">0%</b></p>
+      </div>
+    </div>
+
+    <div class="progress-bar" style="max-width:340px;">
+      <div class="progress-fill" id="progressFillTop"></div>
+    </div>
+
+    <div class="layout" style="margin-top:24px;">
+      <div>
+        <div class="player-frame fade-in">
+          <iframe id="videoFrame" src="" title="Vídeo da aula" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        <div class="lesson-info fade-in fade-in-1">
+          <div class="lesson-info-head">
+            <h2 id="lessonTitle">Carregando...</h2>
+            <div class="watch-toggle" id="watchToggle">
+              <span class="box" id="watchBox"></span>
+              <span id="watchLabel">Marcar como assistida</span>
+            </div>
+          </div>
+          <p id="lessonDesc"></p>
+          <div class="lesson-tags">
+            <span class="tag" id="tagDur">-- min</span>
+            <span class="tag" id="tagModulo">Módulo</span>
+            <span class="tag">Material de apoio em PDF</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modules fade-in fade-in-2" id="modulesList"></div>
+    </div>
+  </main>
+</div>
+
+<script src="usuarios.js"></script>
+<script src="curso-data.js"></script>
+<script>
+  const user = exigirLogin();
+  if(user){
+    document.getElementById('miniAvatar').textContent = user.nome.trim().charAt(0).toUpperCase();
+    document.getElementById('chipName').textContent = user.nome;
+    document.getElementById('cursoTitulo').textContent = user.curso || CURSO.titulo;
+    document.getElementById('totalAulas').textContent = todasAsAulas().length;
+
+    let aulaAtualId = null;
+
+    const nowTitle = document.getElementById('lessonTitle');
+    const lessonDesc = document.getElementById('lessonDesc');
+    const tagDur = document.getElementById('tagDur');
+    const tagModulo = document.getElementById('tagModulo');
+    const videoFrame = document.getElementById('videoFrame');
+    const watchToggle = document.getElementById('watchToggle');
+    const watchBox = document.getElementById('watchBox');
+    const watchLabel = document.getElementById('watchLabel');
+    const modulesList = document.getElementById('modulesList');
+
+    function atualizarBarraGeral(){
+      const percentual = calcularPercentual(user.id);
+      document.getElementById('percentInline').textContent = percentual + '%';
+      document.getElementById('progressFillTop').style.width = percentual + '%';
+    }
+
+    function renderListaModulos(){
+      const progresso = getProgresso(user.id);
+      modulesList.innerHTML = '';
+      CURSO.modulos.forEach(mod => {
+        const modDiv = document.createElement('div');
+        modDiv.className = 'module';
+        const feitasNoModulo = mod.aulas.filter(a => progresso.includes(a.id)).length;
+        modDiv.innerHTML = `<div class="module-title"><span>${mod.titulo}</span><span class="mono">${feitasNoModulo}/${mod.aulas.length}</span></div>`;
+
+        mod.aulas.forEach(aula => {
+          const done = progresso.includes(aula.id);
+          const row = document.createElement('div');
+          row.className = 'lesson-row' + (done ? ' done' : '') + (aula.id === aulaAtualId ? ' active' : '');
+          row.innerHTML = `<span class="check">${done ? '✓' : ''}</span><span>${aula.nome}</span><span class="dur mono">${aula.dur}</span>`;
+          row.addEventListener('click', () => carregarAula(aula, mod.titulo));
+          modDiv.appendChild(row);
+        });
+        modulesList.appendChild(modDiv);
+      });
+    }
+
+    function atualizarBotaoAssistida(aulaId){
+      const progresso = getProgresso(user.id);
+      const done = progresso.includes(aulaId);
+      watchToggle.classList.toggle('done', done);
+      watchBox.textContent = done ? '✓' : '';
+      watchLabel.textContent = done ? 'Aula assistida' : 'Marcar como assistida';
+    }
+
+    function carregarAula(aula, moduloTitulo){
+      aulaAtualId = aula.id;
+      nowTitle.textContent = aula.nome;
+      lessonDesc.textContent = aula.desc;
+      tagDur.textContent = aula.dur;
+      tagModulo.textContent = moduloTitulo;
+      videoFrame.src = 'https://www.youtube.com/embed/' + aula.videoId;
+      atualizarBotaoAssistida(aula.id);
+      renderListaModulos();
+    }
+
+    watchToggle.addEventListener('click', () => {
+      if(!aulaAtualId) return;
+      alternarAulaAssistida(user.id, aulaAtualId);
+      atualizarBotaoAssistida(aulaAtualId);
+      renderListaModulos();
+      atualizarBarraGeral();
+    });
+
+    // começa pela próxima aula não assistida
+    const primeira = proximaAulaNaoAssistida(user.id);
+    const moduloDaPrimeira = CURSO.modulos.find(m => m.aulas.some(a => a.id === primeira.id));
+    carregarAula(primeira, moduloDaPrimeira.titulo);
+    atualizarBarraGeral();
+  }
+
+  document.getElementById('btnSair').addEventListener('click', (e) => {
+    e.preventDefault();
+    encerrarSessao();
+    window.location.href = 'login.html';
+  });
+
+  const menuToggle = document.getElementById('menuToggle');
+  const sidebar = document.getElementById('sidebar');
+  menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+</script>
+</body>
+</html>

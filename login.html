@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrar — Plataforma do Aluno</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  body{
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:32px 32px;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .logo{ display:flex; align-items:center; gap:8px; font-weight:700; font-size:1.1rem; margin-bottom:8px; }
+  .logo .dot{ width:10px; height:10px; background:var(--pencil); border-radius:50%; display:inline-block; }
+  h1{ font-size:1.6rem; font-weight:700; letter-spacing:-0.01em; margin-bottom:6px; }
+  .sub{ color:var(--ink-soft); font-size:0.95rem; margin-bottom:28px; }
+  .foot{ text-align:center; margin-top:22px; font-size:0.85rem; color:var(--ink-soft); }
+  .foot a{ color:var(--pencil-dark); font-weight:600; }
+  .btn-block{ width:100%; justify-content:center; margin-top:26px; }
+  .demo-users{ margin-top:14px; font-size:0.78rem; }
+  .demo-users summary{ cursor:pointer; color:var(--pencil-dark); font-weight:600; }
+  .demo-users table{ width:100%; margin-top:8px; border-collapse:collapse; }
+  .demo-users td{ padding:4px 6px; border-bottom:1px solid var(--border); }
+</style>
+</head>
+<body>
+  <div class="card fade-in">
+    <div class="logo"><span class="dot"></span>SEU NOME</div>
+    <span class="eyebrow">área do aluno</span>
+    <h1>Bem-vindo de volta</h1>
+    <p class="sub">Entre com seu usuário e senha para acessar seu curso.</p>
+
+    <form id="loginForm" novalidate>
+      <label for="usuario">Usuário</label>
+      <input type="text" id="usuario" placeholder="seu usuário" autocomplete="username" required>
+
+      <label for="senha">Senha</label>
+      <div class="pass-wrap">
+        <input type="password" id="senha" placeholder="Sua senha" autocomplete="current-password" required>
+        <button type="button" class="toggle-pass" id="togglePass">mostrar</button>
+      </div>
+
+      <p class="error" id="errorMsg">Usuário ou senha incorretos.</p>
+
+      <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+    </form>
+
+    <p class="foot">Esqueceu a senha? <a href="duvidas.html">Falar com o professor</a></p>
+
+    <details class="demo-users">
+      <summary>Ver contas de teste (remova isso antes de publicar)</summary>
+      <table id="demoTable"></table>
+    </details>
+  </div>
+
+<script src="usuarios.js"></script>
+<script>
+  // se já tem sessão aberta, pula direto pro dashboard
+  if(getUsuarioLogado()){ window.location.href = "dashboard.html"; }
+
+  const form = document.getElementById('loginForm');
+  const errorMsg = document.getElementById('errorMsg');
+  const togglePass = document.getElementById('togglePass');
+  const senhaInput = document.getElementById('senha');
+
+  togglePass.addEventListener('click', () => {
+    const isPassword = senhaInput.type === 'password';
+    senhaInput.type = isPassword ? 'text' : 'password';
+    togglePass.textContent = isPassword ? 'ocultar' : 'mostrar';
+  });
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const usuario = document.getElementById('usuario').value.trim();
+    const senha = senhaInput.value.trim();
+
+    if(!usuario || !senha){
+      errorMsg.textContent = 'Preencha usuário e senha para continuar.';
+      errorMsg.style.display = 'block';
+      return;
+    }
+
+    const usuarioEncontrado = autenticar(usuario, senha);
+    if(!usuarioEncontrado){
+      errorMsg.textContent = 'Usuário ou senha incorretos.';
+      errorMsg.style.display = 'block';
+      return;
+    }
+
+    errorMsg.style.display = 'none';
+    salvarSessao(usuarioEncontrado);
+    window.location.href = 'dashboard.html';
+  });
+
+  // mostra as contas de teste (some isso quando for publicar de verdade)
+  const demoTable = document.getElementById('demoTable');
+  getUsuariosDB().forEach(u => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${u.nome}</td><td class="mono">${u.usuario}</td><td class="mono">${u.senha}</td>`;
+    demoTable.appendChild(tr);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Início — Plataforma do Aluno</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="logo"><span class="dot"></span>SEU NOME</div>
+    <div class="user-chip">
+      <div class="mini-avatar" id="miniAvatar">A</div>
+      <div>
+        <div class="u-name" id="chipName">Aluno</div>
+        <div class="u-role">Aluno</div>
+      </div>
+    </div>
+    <nav class="nav-group">
+      <a class="nav-link active" href="#"><span class="ic">🏠</span>Início</a>
+      <a class="nav-link" href="curso.html"><span class="ic">🎬</span>Meu Curso</a>
+      <a class="nav-link" href="perfil.html"><span class="ic">👤</span>Perfil</a>
+      <a class="nav-link" href="duvidas.html"><span class="ic">💬</span>Dúvidas</a>
+    </nav>
+    <div class="nav-sair">
+      <a class="nav-link" href="#" id="btnSair"><span class="ic">⏻</span>Sair</a>
+    </div>
+  </aside>
+
+  <main class="main wide">
+    <button class="menu-toggle" id="menuToggle">☰</button>
+    <div class="topbar">
+      <div>
+        <h1 id="greeting" class="fade-in">Olá! 👋</h1>
+        <p class="sub">Aqui está um resumo do seu progresso.</p>
+      </div>
+      <div class="avatar" id="avatarInit">A</div>
+    </div>
+
+    <div id="badgeSlot"></div>
+
+    <div class="stats">
+      <div class="stat-card fade-in fade-in-1">
+        <div class="val mono">1</div>
+        <div class="lab">curso ativo</div>
+      </div>
+      <div class="stat-card fade-in fade-in-2">
+        <div class="val mono"><span id="percentStat">0</span>%</div>
+        <div class="lab">progresso concluído</div>
+      </div>
+      <div class="stat-card fade-in fade-in-3">
+        <div class="val mono"><span id="aulasFeitas">0</span>/<span id="aulasTotal">12</span></div>
+        <div class="lab">aulas assistidas</div>
+      </div>
+    </div>
+
+    <section>
+      <h2>Meus cursos</h2>
+      <div class="courses">
+        <div class="course-card fade-in fade-in-4">
+          <div class="thumb">📐</div>
+          <h3 id="cursoNome">Matemática: Reforço ao ENEM</h3>
+          <div class="meta">12 aulas · 3 módulos</div>
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+          <div class="progress-label" id="progressLabel">0 de 12 aulas concluídas</div>
+          <a href="curso.html" class="btn btn-primary">Continuar assistindo</a>
+        </div>
+
+        <div class="locked-card">
+          <div class="ic">💻</div>
+          <h3>Criação de Sites — Módulo Extra</h3>
+          <p>Disponível em breve como upgrade da sua matrícula. Fale com o professor pra saber mais.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="usuarios.js"></script>
+<script src="curso-data.js"></script>
+<script>
+  const user = exigirLogin();
+  if(user){
+    document.getElementById('greeting').textContent = 'Olá, ' + user.nome.split(' ')[0] + '! 👋';
+    document.getElementById('avatarInit').textContent = user.nome.trim().charAt(0).toUpperCase();
+    document.getElementById('miniAvatar').textContent = user.nome.trim().charAt(0).toUpperCase();
+    document.getElementById('chipName').textContent = user.nome;
+    document.getElementById('cursoNome').textContent = user.curso || CURSO.titulo;
+
+    const total = todasAsAulas().length;
+    const feitas = getProgresso(user.id).length;
+    const percentual = calcularPercentual(user.id);
+
+    document.getElementById('aulasTotal').textContent = total;
+    document.getElementById('aulasFeitas').textContent = feitas;
+    document.getElementById('progressLabel').textContent = feitas + ' de ' + total + ' aulas concluídas';
+
+    if(percentual >= 100){
+      document.getElementById('badgeSlot').innerHTML = '<div class="badge-complete">🎉 Curso concluído! Parabéns pelo esforço.</div>';
+    }
+
+    // anima a contagem do percentual e a barra de progresso
+    let atual = 0;
+    const percentEl = document.getElementById('percentStat');
+    const fill = document.getElementById('progressFill');
+    requestAnimationFrame(() => { fill.style.width = percentual + '%'; });
+    const timer = setInterval(() => {
+      atual += Math.max(1, Math.round(percentual/30));
+      if(atual >= percentual){ atual = percentual; clearInterval(timer); }
+      percentEl.textContent = atual;
+    }, 25);
+  }
+
+  document.getElementById('btnSair').addEventListener('click', (e) => {
+    e.preventDefault();
+    encerrarSessao();
+    window.location.href = 'login.html';
+  });
+
+  const menuToggle = document.getElementById('menuToggle');
+  const sidebar = document.getElementById('sidebar');
+  menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+</script>
+</body>
+</html>
